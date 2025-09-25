@@ -56,8 +56,8 @@ void loop()
     // lastMicros = now;
 
     char buf[64];
-    int len = snprintf(buf, sizeof(buf), "%d,%d,%d,%d,%d\n", micros(), acc.x, acc.y, acc.z, mic);
-    // int len = snprintf(buf, sizeof(buf), "%d,%d,%d,%d,%d\n", sps*10, acc.x, acc.y, acc.z, mic);
+    // int len = snprintf(buf, sizeof(buf), "%d,%d,%d,%d,%d\n", micros(), acc.x, acc.y, acc.z, mic);
+    int len = snprintf(buf, sizeof(buf), "%d,%d,%d,%d\n", acc.x, acc.y, acc.z, mic);
     Serial.write(buf, len);
 }
 
