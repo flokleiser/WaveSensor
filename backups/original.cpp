@@ -1,10 +1,10 @@
 #include <PL_ADXL355.h> //https://github.com/plasmapper/adxl355-arduino
 PL::ADXL355 ADXL355;
-#define SPI_CS 1    // chip select
-#define SPI_DRDY 14 // data ready
-#define SPI_SCK 2   // clock
-#define SPI_MOSI 3  // arduino -> sensor data
-#define SPI_MISO 4  // sensor -> arduino data
+#define SPI_CS 1
+#define SPI_DRDY 14
+#define SPI_SCK 2
+#define SPI_MOSI 3
+#define SPI_MISO 4
 
 #include <I2S.h> //part of https://github.com/earlephilhower/arduino-pico
 I2S i2s(INPUT);
@@ -34,10 +34,7 @@ void setup()
 
     ADXL355.beginSPI(SPI_CS);
     ADXL355.setRange(PL::ADXL355_Range::range2g);
-    // ADXL355.setOutputDataRate(PL::ADXL355_OutputDataRate::odr4000);
-
-    ADXL355.setOutputDataRate(PL::ADXL355_OutputDataRate::odr125);
-
+    ADXL355.setOutputDataRate(PL::ADXL355_OutputDataRate::odr4000);
     ADXL355.enableDataReady();
     ADXL355.enableMeasurement();
 }
@@ -53,21 +50,17 @@ void loop()
     }
 
     auto acc = ADXL355.getRawAccelerations();
-    // auto acc = ADXL355.getAccelerations();
 
-    // float x_g = (float)acc.x / 262144.0;
-    // float y_g = (float)acc.y / 262144.0;
-    // float z_g = (float)acc.z / 262144.0;
+    // unsigned long now = micros();
+    // int sps = 1e6 / (now - lastMicros);
+    // lastMicros = now;
 
     char buf[64];
-    // int len = snprintf(buf, sizeof(buf), "%d,%d,%d,%d,%d\n", micros(), acc.x, acc.y, acc.z, mic);
-    // int len = snprintf(buf, sizeof(buf), "%d,%d,%d,%d\n", acc.x, acc.y, acc.z, mic);
-    int len = snprintf(buf, sizeof(buf), "%d,%d,%d\n", acc.x, acc.y, acc.z);
-    // int len = snprintf(buf, sizeof(buf), "%d,%d,%d\n", x_g, y_g, z_g);
+    int len = snprintf(buf, sizeof(buf), "%d,%d,%d,%d,%d\n", micros(), acc.x, acc.y, acc.z, mic);
+    // int len = snprintf(buf, sizeof(buf), "%d,%d,%d,%d,%d\n", sps*10, acc.x, acc.y, acc.z, mic);
     Serial.write(buf, len);
 }
 
-// just for the mic/neopixel
 void setup1()
 {
     i2s.setDATA(I2S_DATA);
