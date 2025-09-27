@@ -8,3 +8,6 @@ Initial code for the sensor by Luca Somm, check out his project:
 x: -190199,169883,
 y: -188578,156264,
 z: -187655,191409
+
+## todo:
+fully swing sensor around when calibrating, i was too lazy for that
