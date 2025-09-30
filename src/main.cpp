@@ -1,65 +1,115 @@
-#define ARDUINO_USB_CDC_ON_BOOT 1
+// #define ARDUINO_USB_CDC_ON_BOOT 1
+#define ARDUINO_USB_MODE 1
+
 #include <M5Unified.h>
+#include <Adafruit_NeoPixel.h>
+
+#define PIN 8
+#define NUMPIXELS 8
+
+#define DELAYVAL 500
+
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 float gx = 0.0, gy = -1.0, gz = 0.0;
 
-void setup() {
-  auto cfg = M5.config();
-  cfg.serial_baudrate = 115200;
-  M5.begin(cfg);
+void setup()
+{
+    auto cfg = M5.config();
+    cfg.serial_baudrate = 115200;
+    M5.begin(cfg);
 
-  M5.Imu.begin();
+    M5.Display.setRotation(2);
+    M5.Imu.begin();
 
-  M5.Display.setTextSize(1.5);
-  M5.Display.println("IMU Data Reader");
-  M5.Display.println("Starting...");
+    M5.Display.setTextSize(2);
+    M5.Display.println("IMU Data Reader");
+    M5.Display.println("Starting...");
 
-  Serial.println("test");
+    pixels.begin();
+    pixels.setBrightness(50);
 
-  delay(1000);
+    Serial.println("test");
+
+    delay(1000);
 }
 
-void loop() {
-  float accX = 0.0F;
-  float accY = 0.0F;
-  float accZ = 0.0F;
 
-  float gyroX = 0.0F;
-  float gyroY = 0.0F;
-  float gyroZ = 0.0F;
+// uint32_t getColor(float value)
+// {
+//     value = constrain(value, 0.0, 1.0);
 
-  float pitch = 0.0F;
-  float roll = 0.0F;
-  float yaw = 0.0F;
+//     int r = (int)(255 * value);
+//     int g = (int)(255 * (1.0 - abs(value * 2.0 - 1.0)));
+//     int b = (int)(255 * (1.0 - value));
 
-  M5.Imu.getAccel(&accX, &accY, &accZ);
-  M5.Imu.getGyro(&gyroX, &gyroY, &gyroZ);
+//     return pixels.Color(r, g, b, 0);
+// }
 
-  // nice screen
-  M5.Display.clear();
-  M5.Display.setCursor(0, 0);
-  M5.Display.printf("Test:\n");
-  M5.Display.printf("X: %.2f\n", accX);
-  M5.Display.printf("Y: %.2f\n", accY);
-  M5.Display.printf("Z: %.2f\n", accZ);
+uint32_t getColor(float value)
+{
+    value = constrain(value, 0.0, 1.0);
 
-  M5.Display.printf("\nGyro:\n");
-  M5.Display.printf("X: %.2f\n", gyroX);
-  M5.Display.printf("Y: %.2f\n", gyroY);
-  M5.Display.printf("Z: %.2f\n", gyroZ);
+    int r, g, b;
 
-  float ax = accX - gx;
-  float ay = accY - gy;
-  float az = accZ - gz;
+    if (value < 0.5)
+    {
+        r = (int)(255 * value * 2);
+        g = (int)(255 * (1.0 - value * 2));
+        b = 255 - (int)(255 * value * 2);
+    }
+    else
+    {
+        r = 255;
+        g = 0;
+        b = 0;
+    }
 
-  // Serial.printf("Accel: X=%.2f Y=%.2f Z=%.2f | \n", accX, accY, accZ);
-  // Y will be around 1 when upright
-  // Serial.printf("%.2f, %.2f, %.2f \n", accX, -accY, accZ);
-  Serial.printf("%.2f, %.2f, %.2f\n", ax, ay, az);
+    return pixels.Color(r, g, b, 0);
+}
 
-  // we dont really need gyro
-  //  Serial.printf("Gyro: X=%.2f Y=%.2f Z=%.2f | \n", gyroX, gyroY, gyroZ);
+void loop()
+{
+    float accX = 0.0F;
+    float accY = 0.0F;
+    float accZ = 0.0F;
 
-  M5.update();
-  delay(100);
+    M5.Imu.getAccel(&accX, &accY, &accZ);
+
+    // from 0 to 1
+
+    float ax = fabs(accX - gx);
+    float ay = fabs(accY - gy);
+    float az = fabs(accZ - gz);
+
+    // from -1 to 1
+    //   float ax = accX - gx;
+    //   float ay = accY - gy;
+    //   float az = accZ - gz;
+
+    float ayAbs = fabs(ay);
+    ayAbs = constrain(ayAbs, 0.0, 1.0);
+
+    int numLeds = (int)(ayAbs * NUMPIXELS);
+    uint32_t color = getColor(ayAbs);
+
+    pixels.clear();
+    for (int i = 0; i < numLeds; i++)
+    {
+        pixels.setPixelColor(i, color);
+    }
+    pixels.show();
+
+    M5.Display.clear();
+    M5.Display.setCursor(0, 0);
+    M5.Display.printf("TEST:\n");
+
+    M5.Display.printf("X: %.2f\n", ax);
+    M5.Display.printf("Y: %.2f\n", ay);
+    M5.Display.printf("Z: %.2f\n", az);
+
+    Serial.printf("%.2f, %.2f, %.2f\n", ax, ay, az);
+
+    M5.update();
+    delay(100);
 }
