@@ -1,4 +1,4 @@
-//CODE BY LUCA SOMM
+// CODE BY LUCA SOMM
 
 #include <PL_ADXL355.h> //https://github.com/plasmapper/adxl355-arduino
 PL::ADXL355 ADXL355;
